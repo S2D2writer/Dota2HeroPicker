@@ -40,13 +40,17 @@ function getHeroStats(heroNumber) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
+            //console.log("changed");
             var heroStats = JSON.parse(this.responseText);
+            document.getElementById("loadingLine" + heroStats[0].hero_id).style.color = "green";
+            heroStats.shift();
             evaluateWinrateAvg(heroStats);
             var stats = "";
             for (var i = 0; i < masterArray.length; i++)
             {
                 stats += masterArray[i].hero_id + " " + masterArray[i].games_played + " " + masterArray[i].wins + "<br/>";
             }
+            console.log(masterArray.length);
             document.getElementById("heroStats").innerHTML = stats;
         }
     };
@@ -56,11 +60,21 @@ function getHeroStats(heroNumber) {
 
 function sendHeroStatRequests()
 {
+    var loadingLinesContainer = document.createElement("div");
+    document.body.appendChild(loadingLinesContainer);
     for (var i = 1; i <= 5; i++)
     {
-        getHeroStats(i);
+        getHeroStats(i); // Sends an ajax request
+        var currentSelect = document.getElementById("heroList" + i);
+        var newLoadingText = document.createElement("p");
+        newLoadingText.innerHTML = "Loading stats for " + currentSelect[currentSelect.selectedIndex].text;
+        newLoadingText.id = "loadingLine" + document.getElementById("heroList" + i).value;
+        loadingLinesContainer.appendChild(newLoadingText);
+        loadingLinesContainer.appendChild(document.createElement("br"));
     }
+
 }
+
 function evaluateWinrateAvg(heroStats) {
 
     for (var i = heroStats.length - 1; i >= 0; i--)

@@ -32,6 +32,8 @@ public class HeroChooser extends HttpServlet {
             URL setup for OpenDotaFetcher to get desired information.
          */
         String x = request.getParameter("actionCode");
+        String ownerHeroTag = "";
+        boolean statsRequest = false;
         switch(request.getParameter("actionCode"))
         {
             case "getHeroList":
@@ -39,6 +41,8 @@ public class HeroChooser extends HttpServlet {
                 break;
             case "getHeroStats":
                 url = heroStatsPreLink + request.getParameter("heroID") + heroStatsPostLink;
+                ownerHeroTag = "[{\"hero_id\":" + request.getParameter("heroID") + "},";
+                statsRequest = true;
                 break;
             default:
                 url = heroListLink;
@@ -48,7 +52,12 @@ public class HeroChooser extends HttpServlet {
          */
         OpenDotaFetcher fetcher = new OpenDotaFetcher();
         String openDotaData = fetcher.pull(url);
-
+        if (statsRequest)
+        {
+            openDotaData = openDotaData.substring(1);
+            ownerHeroTag += openDotaData;
+            openDotaData = ownerHeroTag;
+        }
         /*
             Write to response.
          */
