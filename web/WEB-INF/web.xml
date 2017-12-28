@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         version="2.5"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+    <servlet>
+        <servlet-name>backEnd-</servlet-name>
+        <servlet-class>HeroChooser</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>viewJSP</servlet-name>
+        <jsp-file>/results.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>backEnd-</servlet-name>
+        <url-pattern>/goBackEnd</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>viewJSP</servlet-name>
+        <url-pattern>/goView</url-pattern>
+    </servlet-mapping>
+</web-app>
