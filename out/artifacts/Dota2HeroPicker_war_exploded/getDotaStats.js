@@ -17,7 +17,12 @@ function getHeroList()
              */
             for (var i = 1; i <= 5; i++)
             {
+                /*
+                    Create dropdown.
+                 */
                 var selectElement = document.createElement("select");
+                selectElement.classList.add("form-control");
+                selectElement.appendChild(new Option("No hero selected", -1, false, false));
                 for (var j = 0; j < obj.length; j++) {
                     var heroID = obj[j].id;
                     var heroName = obj[j].name.substring(14).replace(new RegExp("_", 'g'), " ");
@@ -25,7 +30,15 @@ function getHeroList()
                     selectElement.appendChild(option);
                 }
                 selectElement.id = "heroList" + i;
-                document.body.appendChild(selectElement);
+                /*
+                    Add to page.
+                 */
+                var listContainer = document.createElement("div");
+                listContainer.classList.add("col-sm-1");
+                listContainer.id = "heroList" + i + "Container";
+                listContainer.appendChild(selectElement);
+                document.getElementById("mainBootstrapContainer").appendChild(listContainer);
+
             }
         }
     };
@@ -40,9 +53,9 @@ function getHeroStats(heroNumber) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            //console.log("changed");
             var heroStats = JSON.parse(this.responseText);
-            document.getElementById("loadingLine" + heroStats[0].hero_id).style.color = "green";
+            //document.getElementById("loadingLine" + heroStats[0].hero_id).style.color = "green";
+            document.getElementById("loadingLine" + heroStats[0].hero_id).classList.add("text-success");
             heroStats.shift();
             evaluateWinrateAvg(heroStats);
             var stats = "";
@@ -50,7 +63,6 @@ function getHeroStats(heroNumber) {
             {
                 stats += masterArray[i].hero_id + " " + masterArray[i].games_played + " " + masterArray[i].wins + "<br/>";
             }
-            console.log(masterArray.length);
             document.getElementById("heroStats").innerHTML = stats;
         }
     };
@@ -58,14 +70,42 @@ function getHeroStats(heroNumber) {
     xhttp.send();
 }
 
+/**
+ * Onclick event handler for the submit button. Makes the AJAX request function call and adds
+ * progress lines.
+ */
 function sendHeroStatRequests()
 {
-    var loadingLinesContainer = document.createElement("div");
-    document.body.appendChild(loadingLinesContainer);
+    masterArray = undefined;
+    /*
+        Remove loading lines container and add a new one, appending it to the bootstrap container.
+     */
+    if (document.getElementById("loadingLinesContainer") != null)
+    {
+        var loadingLinesContainer = document.getElementById("loadingLinesContainer");
+        document.getElementById("mainBootstrapContainer").removeChild(loadingLinesContainer);
+    }
+    loadingLinesContainer = document.createElement("div");
+    loadingLinesContainer.id = "loadingLinesContainer";
+    document.getElementById("mainBootstrapContainer").appendChild(loadingLinesContainer);
+
+    /*
+        Process the 5(?) hero choices.
+     */
     for (var i = 1; i <= 5; i++)
     {
-        getHeroStats(i); // Sends an ajax request
+        /*
+            Make AJAX request.
+         */
         var currentSelect = document.getElementById("heroList" + i);
+        if (currentSelect[currentSelect.selectedIndex].value == -1)
+        {
+            continue;
+        }
+        getHeroStats(i);
+        /*
+            Make "loading" progress lines.
+         */
         var newLoadingText = document.createElement("p");
         newLoadingText.innerHTML = "Loading stats for " + currentSelect[currentSelect.selectedIndex].text;
         newLoadingText.id = "loadingLine" + document.getElementById("heroList" + i).value;
