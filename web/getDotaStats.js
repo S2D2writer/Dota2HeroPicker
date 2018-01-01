@@ -4,7 +4,7 @@
 /**
  * Used to make an all-hero list information request to servlet.
  */
-var masterArray, newArray;
+var masterArray, newArray, failedCount = 0;
 function getHeroList()
 {
     var xhttp = new XMLHttpRequest();
@@ -22,7 +22,7 @@ function getHeroList()
                  */
                 var selectElement = document.createElement("select");
                 selectElement.classList.add("form-control");
-                selectElement.appendChild(new Option("No hero selected", -1, false, false));
+                selectElement.appendChild(new Option("No hero", -1, false, false));
                 for (var j = 0; j < obj.length; j++) {
                     var heroID = obj[j].id;
                     var heroName = obj[j].name.substring(14).replace(new RegExp("_", 'g'), " ");
@@ -33,11 +33,12 @@ function getHeroList()
                 /*
                     Add dropwdown select element to page.
                  */
-                var listContainer = document.createElement("div");
-                listContainer.classList.add("col-sm-1");
-                listContainer.id = "heroList" + i + "Container";
+                //var listContainer = document.createElement("div");
+                //listContainer.classList.add("col-sm-1");
+                //listContainer.id = "heroList" + i + "Container";
+                var listContainer = document.getElementById("heroList" + i + "Container");
                 listContainer.appendChild(selectElement);
-                document.getElementById("mainBootstrapContainer").appendChild(listContainer);
+                //document.getElementById("mainBootstrapContainer").appendChild(listContainer);
 
             }
         }
@@ -53,8 +54,22 @@ function getHeroStats(heroNumber) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            var heroStats = JSON.parse(this.responseText);
-            //document.getElementById("loadingLine" + heroStats[0].hero_id).style.color = "green";
+            try {
+                var heroStats = JSON.parse(this.responseText);
+            }
+            catch(e)
+            {
+                failedCount++;
+                if (failedCount == 5)
+                {
+                    alert("Oops! Something went wrong with OpenDota! Our service is reliant on their API's successful functioning.");
+                    return;
+                }
+                getHeroStats(heroNumber);
+                return;
+            }
+            failedCount = 0;
+            document.getElementById("loadingLine" + heroStats[0].hero_id).innerHTML = "Successfully loaded stats for " + document.getElementById("loadingLine" + heroStats[0].hero_id).getAttribute("heroName") + " " + "<i class='fa fa-check' aria-hidden='true'></i>";
             document.getElementById("loadingLine" + heroStats[0].hero_id).classList.add("text-success");
             heroStats.shift();
             evaluateWinrateAvg(heroStats);
@@ -66,6 +81,7 @@ function getHeroStats(heroNumber) {
             document.getElementById("heroStats").innerHTML = stats;
         }
     };
+
     xhttp.open("GET", "/goBackEnd?actionCode=getHeroStats&heroID="+document.getElementById("heroList" + heroNumber).value, true);
     xhttp.send();
 }
@@ -78,16 +94,18 @@ function sendHeroStatRequests()
 {
     masterArray = undefined;
     /*
-        Remove loading lines container and add a new one, appending it to the bootstrap container.
+        If same hero chosen multiple times, we say no bueno.
      */
-    if (document.getElementById("loadingLinesContainer") != null)
+    /*
+        Remove loading lines container elements if not empty.
+     */
+    var loadingLinesContainer = document.getElementById("loadingLinesContainer");
+    if (document.getElementById("loadingLinesContainer").childNodes.length != 0)
     {
-        var loadingLinesContainer = document.getElementById("loadingLinesContainer");
-        document.getElementById("mainBootstrapContainer").removeChild(loadingLinesContainer);
+        while (loadingLinesContainer.firstChild) {
+            loadingLinesContainer.removeChild(loadingLinesContainer.firstChild);
+        }
     }
-    loadingLinesContainer = document.createElement("div");
-    loadingLinesContainer.id = "loadingLinesContainer";
-    document.getElementById("mainBootstrapContainer").appendChild(loadingLinesContainer);
 
     /*
         Process the 5(?) hero choices.
@@ -107,23 +125,35 @@ function sendHeroStatRequests()
             Make "loading" progress lines.
          */
         var newLoadingText = document.createElement("p");
+        newLoadingText.setAttribute("heroId", currentSelect.value);
+        newLoadingText.setAttribute("heroName", currentSelect[currentSelect.selectedIndex].text);
         newLoadingText.innerHTML = "Loading stats for " + currentSelect[currentSelect.selectedIndex].text;
         newLoadingText.id = "loadingLine" + document.getElementById("heroList" + i).value;
         loadingLinesContainer.appendChild(newLoadingText);
-        loadingLinesContainer.appendChild(document.createElement("br"));
+        //loadingLinesContainer.appendChild(document.createElement("br"));
     }
 
 }
 
+/**
+ * Factors in returned stats into the final result.
+ * @param heroStats Array of hero stats objects.
+ */
 function evaluateWinrateAvg(heroStats) {
-
-    for (var i = heroStats.length - 1; i >= 0; i--)
+    /*
+        If user has checked the filter checkbox, take out heroes who have less than 10 games played.
+     */
+    if (document.getElementById("filterInsufficientData").checked)
     {
-        if (heroStats[i].games_played < 10)
+        for (var i = heroStats.length - 1; i >= 0; i--)
         {
-            heroStats.splice(i, 1);
+            if (heroStats[i].games_played < 10)
+            {
+                heroStats.splice(i, 1);
+            }
         }
     }
+
 
     if (masterArray === undefined)
     {
@@ -134,21 +164,21 @@ function evaluateWinrateAvg(heroStats) {
 
         newArray = heroStats;
         var newArrayHeroIDs = newArray.slice(0);
-        for (var i = newArray.length - 1; i >= 0; i--)
+        for (var j = newArray.length - 1; j >= 0; j--)
         {
-            newArrayHeroIDs[i] = newArray[i].hero_id;
+            newArrayHeroIDs[j] = newArray[j].hero_id;
         }
-        for (var i = masterArray.length - 1; i >= 0; i--)
+        for (var k = masterArray.length - 1; k >= 0; k--)
         {
-            var indexOfCurrentIdInNewArray = newArrayHeroIDs.indexOf(masterArray[i].hero_id);
+            var indexOfCurrentIdInNewArray = newArrayHeroIDs.indexOf(masterArray[k].hero_id);
             if (indexOfCurrentIdInNewArray < 0)
             {
-                masterArray.splice(i, 1);
+                masterArray.splice(k, 1);
             }
             else
             {
-                masterArray[i].games_played += newArray[indexOfCurrentIdInNewArray].games_played;
-                masterArray[i].wins += newArray[indexOfCurrentIdInNewArray].wins;
+                masterArray[k].games_played += newArray[indexOfCurrentIdInNewArray].games_played;
+                masterArray[k].wins += newArray[indexOfCurrentIdInNewArray].wins;
             }
         }
     }

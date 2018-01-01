@@ -8,18 +8,40 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+    <script src="https://use.fontawesome.com/81849def90.js"></script>
+    <!--<link href="/css/banner_styles.css" rel="stylesheet" > -->
     <script src="getDotaStats.js"></script>
     <script src="utils.js"></script>
 </head>
 
 <body onload="getHeroList()">
-<div id="mainBootstrapContainer" class="container">
-
-    <p id = "heroStats"></p>
-    <p class="text-success">testing green</p>
-    <button type="button" onclick="sendHeroStatRequests()">Change Content</button>
+<div id="mainBootstrapContainer" class="container-fluid">
+    <div class="jumbotron">
+        <h1 class="display-4">D2HP </h1>
+        <h3><small>A statistics-based DotA 2 hero analyst based on freshly served OpenDota data</small></h3>
+    </div>
+    <div id="heroSelectLists">
+        <div class="row">
+        <div class="col-md-2" id="heroList1Container">
+        </div>
+        <div class="col-md-2" id="heroList2Container">
+        </div>
+        <div class="col-md-2" id="heroList3Container">
+        </div>
+        <div class="col-md-2" id="heroList4Container">
+        </div>
+        <div class="col-md-2" id="heroList5Container">
+        </div>
+        </div>
+    </div>
+    <br>
+    <input type="checkbox" id="filterInsufficientData"/> Filter out heroes with less than 10 games played against chosen heroes
+    <br><br>
+    <button type="button" class="btn btn-info" onclick="sendHeroStatRequests()">Determine best hero!</button>
+    <br><br>
     <div id="loadingLinesContainer">
     </div>
+    <p id = "heroStats"></p>
 </div>
 </body>
 </html>
